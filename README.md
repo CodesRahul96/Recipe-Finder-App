@@ -1,16 +1,68 @@
-# React + Vite
+# DesiDelights - Authentic Indian Recipe Finder 🍛
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**DesiDelights** is a premium React-based application designed for food enthusiasts who love Indian cuisine. It provides a curated collection of authentic recipes with a bilingual experience (English & Hindi), smart ingredient translations, and detailed nutritional information.
 
-Currently, two official plugins are available:
+![DesiDelights Hero](https://images.unsplash.com/photo-1585937421612-70a008356f36?q=80&w=2070&auto=format&fit=crop)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Features
 
-## React Compiler
+- **🇮🇳 Authentic Indian Cuisine**: Exclusively filtered to show only the best Indian dishes.
+- **🗣️ Bilingual Support**: seamless toggling between **English** and **Hindi**.
+  - UI Elements, Menus, and Labels translated.
+  - **Smart Ingredient Translation**: Automatically converts "Onion" to "प्याज", "Salt" to "नमक", etc.
+  - **Localized Instructions**: Full Hindi cooking guides for popular dishes.
+- **❤️ Favorites System**: Save your loved recipes locally (persisted via LocalStorage).
+- **🔎 Quick Filters**:
+  - **Vegetarian**: Instant access to meat-free delights.
+  - **Spicy**: For those who love the heat!
+  - **Popular**: Curated list of top-rated dishes.
+- **📊 Recipe Insights**: Detailed info bar showing **Prep Time**, **Servings**, **Calories**, and **Difficulty** (for select recipes).
+- **🎨 Premium UI**: Glassmorphism effects, smooth animations, and a dynamic responsive design.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🛠️ Tech Stack
 
-## Expanding the ESLint configuration
+- **Frontend**: React.js (Vite)
+- **Styling**: Tailwind CSS
+- **State Management**: React Context API
+- **API**: TheMealDB
+- **Icons**: Heroicons
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🚀 Getting Started
+
+### Prerequisites
+
+Identify that you have `node` and `npm` installed.
+
+### Installation
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/CodesRahul96/Recipe-Finder-App.git
+   cd Recipe-Finder-App
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+3. **Run the development server**
+
+   ```bash
+   npm run dev
+   ```
+
+4. Open `http://localhost:5173` to view the app.
+
+## 👨‍💻 Developer
+
+**Developed by CodesRahul**
+
+- 🌐 Website: [www.codesrahul.xyz](https://www.codesrahul.xyz)
+- 🐙 GitHub: [CodesRahul96](https://github.com/CodesRahul96)
+
+---
+
+_Made with ❤️ and 🌶️ in India._
