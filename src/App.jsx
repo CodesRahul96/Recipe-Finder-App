@@ -45,9 +45,23 @@ function App() {
     }
   });
 
+  // Keep localStorage and active Favorites view in sync
   useEffect(() => {
-    localStorage.setItem('favorites', JSON.stringify(favorites));
-  }, [favorites]);
+    try {
+      localStorage.setItem('favorites', JSON.stringify(favorites));
+    } catch (e) {
+      console.warn('Could not save favorites to localStorage', e);
+    }
+
+    if (activeTab === 'Favorites') {
+      setRecipes(favorites);
+      if (favorites.length === 0) {
+        setError('noFavoritesDesc');
+      } else {
+        setError(null);
+      }
+    }
+  }, [favorites, activeTab]);
 
   const showToast = (message, type = 'info') => {
     setToast({ message, type });
@@ -61,7 +75,17 @@ function App() {
         return prev.filter(f => f.idMeal !== recipe.idMeal);
       } else {
         showToast(t.toastFavorited, 'heart');
-        return [...prev, recipe];
+        // Ensure necessary card fields exist
+        const itemToSave = {
+          idMeal: recipe.idMeal,
+          strMeal: recipe.strMeal,
+          strMealThumb: recipe.strMealThumb,
+          strArea: recipe.strArea || 'Global',
+          strCategory: recipe.strCategory || 'Main Course',
+          strInstructions: recipe.strInstructions,
+          strYoutube: recipe.strYoutube
+        };
+        return [...prev, itemToSave];
       }
     });
   };
@@ -108,7 +132,6 @@ function App() {
 
   const handleCloseModal = () => {
     setSelectedRecipe(null);
-    // Remove recipe parameter from URL
     const url = new URL(window.location);
     url.searchParams.delete('recipe');
     window.history.pushState({}, '', url);
@@ -295,15 +318,20 @@ function App() {
                       <button
                         key={tab}
                         onClick={() => handleQuickFilter(tab)}
-                        className={`inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 rounded-xl transition-all duration-300 cursor-pointer min-h-[32px] sm:min-h-[36px] ${
+                        className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 rounded-xl transition-all duration-300 cursor-pointer min-h-[34px] sm:min-h-[38px] ${
                           activeTab === tab 
-                            ? 'bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-md shadow-orange-500/30 font-bold scale-[1.02]' 
+                            ? isFav 
+                              ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/40 font-bold scale-[1.03]'
+                              : 'bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-md shadow-orange-500/30 font-bold scale-[1.02]' 
                             : 'text-gray-400 hover:text-white hover:bg-white/5'
                         }`}
                       >
-                        <span className="whitespace-nowrap">{t[`nav${tab}`]}</span>
+                        <span className="whitespace-nowrap flex items-center gap-1">
+                          {isFav && <span>❤️</span>}
+                          <span>{t[`nav${tab}`]}</span>
+                        </span>
                         {isFav && favorites.length > 0 && (
-                          <span className="px-1.5 py-0.2 rounded-full text-[10px] font-extrabold bg-rose-500 text-white">
+                          <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-white text-rose-600 shadow-sm leading-none">
                             {favorites.length}
                           </span>
                         )}
@@ -325,56 +353,75 @@ function App() {
             </div>
         </header>
 
-        {/* Hero Section */}
-        <div className="text-center mb-6 sm:mb-8 pt-4 sm:pt-10">
-          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs md:text-sm font-semibold bg-orange-500/10 text-orange-300 border border-orange-500/25 mb-4 sm:mb-6 backdrop-blur-md">
-            <span>✨</span>
-            <span className="truncate max-w-[280px] sm:max-w-none">{t.appSubtitle}</span>
+        {/* Hero Section (Hidden when on Favorites tab to give full focus to saved dishes) */}
+        {activeTab !== 'Favorites' && (
+          <div className="text-center mb-6 sm:mb-8 pt-4 sm:pt-10">
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs md:text-sm font-semibold bg-orange-500/10 text-orange-300 border border-orange-500/25 mb-4 sm:mb-6 backdrop-blur-md">
+              <span>✨</span>
+              <span className="truncate max-w-[280px] sm:max-w-none">{t.appSubtitle}</span>
+            </div>
+
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-4 sm:mb-6 tracking-tight leading-[1.08] sm:leading-[1.02]">
+              {t.heroTitle} <br />
+              <span className="bg-gradient-to-r from-orange-400 via-rose-500 to-amber-400 bg-clip-text text-transparent">
+                {t.heroTitleSpan}
+              </span>
+            </h1>
+            <p className="text-xs sm:text-base md:text-lg text-gray-400 max-w-3xl mx-auto font-light leading-relaxed mb-6 sm:mb-8 px-2">
+              {t.heroSubtitle}
+            </p>
+
+            {/* Highlights Bar */}
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 md:gap-8 text-xs sm:text-sm text-gray-300">
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-900/60 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl border border-white/10 backdrop-blur-md">
+                <span className="text-sm sm:text-base">🍳</span>
+                <span className="font-bold text-white text-[11px] sm:text-xs md:text-sm">{t.statRecipes}</span>
+              </div>
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-900/60 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl border border-white/10 backdrop-blur-md">
+                <span className="text-sm sm:text-base">🌎</span>
+                <span className="font-bold text-white text-[11px] sm:text-xs md:text-sm">{t.statCuisines}</span>
+              </div>
+              <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-900/60 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl border border-white/10 backdrop-blur-md">
+                <span className="text-sm sm:text-base">⚡</span>
+                <span className="font-bold text-white text-[11px] sm:text-xs md:text-sm">{t.statFree}</span>
+              </div>
+            </div>
           </div>
+        )}
 
-          <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-4 sm:mb-6 tracking-tight leading-[1.08] sm:leading-[1.02]">
-            {t.heroTitle} <br />
-            <span className="bg-gradient-to-r from-orange-400 via-rose-500 to-amber-400 bg-clip-text text-transparent">
-              {t.heroTitleSpan}
-            </span>
-          </h1>
-          <p className="text-xs sm:text-base md:text-lg text-gray-400 max-w-3xl mx-auto font-light leading-relaxed mb-6 sm:mb-8 px-2">
-            {t.heroSubtitle}
-          </p>
+        {/* Search Bar & Filters (Hidden when viewing Favorites) */}
+        {activeTab !== 'Favorites' ? (
+          <>
+            <SearchBar 
+              onSearch={handleSearch} 
+              onSurpriseMe={handleSurpriseMe}
+              isSurpriseLoading={isSurpriseLoading}
+            />
 
-          {/* Highlights Bar */}
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 md:gap-8 text-xs sm:text-sm text-gray-300">
-            <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-900/60 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl border border-white/10 backdrop-blur-md">
-              <span className="text-sm sm:text-base">🍳</span>
-              <span className="font-bold text-white text-[11px] sm:text-xs md:text-sm">{t.statRecipes}</span>
+            <CategoryFilter
+              selectedCuisine={selectedCuisine}
+              onSelectCuisine={handleCuisineSelect}
+              selectedCategory={selectedCategory}
+              onSelectCategory={handleCategorySelect}
+              filterView={filterView}
+              setFilterView={setFilterView}
+            />
+          </>
+        ) : (
+          /* Favorites Header Banner */
+          <div className="pt-4 sm:pt-8 pb-4 mb-6 sm:mb-8 text-center border-b border-white/10">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/30 text-xs sm:text-sm font-bold mb-3 shadow-lg">
+              <span>❤️</span>
+              <span>{t.navFavorites} ({favorites.length})</span>
             </div>
-            <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-900/60 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl border border-white/10 backdrop-blur-md">
-              <span className="text-sm sm:text-base">🌎</span>
-              <span className="font-bold text-white text-[11px] sm:text-xs md:text-sm">{t.statCuisines}</span>
-            </div>
-            <div className="flex items-center gap-1.5 sm:gap-2 bg-slate-900/60 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl border border-white/10 backdrop-blur-md">
-              <span className="text-sm sm:text-base">⚡</span>
-              <span className="font-bold text-white text-[11px] sm:text-xs md:text-sm">{t.statFree}</span>
-            </div>
+            <h2 className="text-2xl sm:text-4xl font-black text-white mb-2">
+              Your Favorite Recipes
+            </h2>
+            <p className="text-xs sm:text-sm text-gray-400 max-w-md mx-auto">
+              All your hand-picked recipes saved locally on your device for instant cooking access anytime.
+            </p>
           </div>
-        </div>
-
-        {/* Search Bar */}
-        <SearchBar 
-          onSearch={handleSearch} 
-          onSurpriseMe={handleSurpriseMe}
-          isSurpriseLoading={isSurpriseLoading}
-        />
-
-        {/* World Cuisines & Meal Categories Filter */}
-        <CategoryFilter
-          selectedCuisine={selectedCuisine}
-          onSelectCuisine={handleCuisineSelect}
-          selectedCategory={selectedCategory}
-          onSelectCategory={handleCategorySelect}
-          filterView={filterView}
-          setFilterView={setFilterView}
-        />
+        )}
 
         {/* Active Filter Info & Results Count */}
         <div className="flex items-center justify-between gap-3 mb-6 sm:mb-8 px-1">
@@ -409,19 +456,25 @@ function App() {
           </div>
         ) : error ? (
           <div className="text-center py-16 sm:py-24 flex flex-col items-center bg-slate-900/40 rounded-3xl border border-white/10 p-6 sm:p-8 my-6">
-            <div className="w-16 sm:w-20 h-16 sm:h-20 mb-4 sm:mb-5 rounded-full bg-white/5 flex items-center justify-center">
-                 <svg className="w-8 sm:w-10 h-8 sm:h-10 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                 </svg>
+            <div className={`w-16 sm:w-20 h-16 sm:h-20 mb-4 sm:mb-5 rounded-full flex items-center justify-center ${error === 'noFavoritesDesc' ? 'bg-rose-500/10 text-rose-500' : 'bg-white/5 text-gray-500'}`}>
+              {error === 'noFavoritesDesc' ? (
+                <svg className="w-8 sm:w-10 h-8 sm:h-10 fill-current" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="w-8 sm:w-10 h-8 sm:h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              )}
             </div>
             <h3 className="text-xl sm:text-2xl font-bold text-white mb-2">{error === 'noFavoritesDesc' ? t.noFavorites : t.noResults}</h3>
             <p className="text-gray-400 max-w-md mx-auto text-xs sm:text-sm mb-5 sm:mb-6">{t[error] || error}</p>
             <button
               type="button"
               onClick={handleResetFilters}
-              className="px-5 sm:px-6 py-2 sm:py-2.5 bg-gradient-to-r from-orange-500 to-amber-600 text-white font-bold text-xs sm:text-sm rounded-2xl shadow-lg shadow-orange-500/30 hover:scale-105 transition-transform cursor-pointer"
+              className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-amber-600 text-white font-bold text-xs sm:text-sm rounded-2xl shadow-lg shadow-orange-500/30 hover:scale-105 transition-transform cursor-pointer"
             >
-              {t.resetFilters}
+              {error === 'noFavoritesDesc' ? '✨ Explore Recipes' : t.resetFilters}
             </button>
           </div>
         ) : (
