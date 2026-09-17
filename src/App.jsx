@@ -75,7 +75,6 @@ function App() {
         return prev.filter(f => f.idMeal !== recipe.idMeal);
       } else {
         showToast(t.toastFavorited, 'heart');
-        // Ensure necessary card fields exist
         const itemToSave = {
           idMeal: recipe.idMeal,
           strMeal: recipe.strMeal,
@@ -98,7 +97,6 @@ function App() {
         const initialRecipes = await getAllGlobalRecipes();
         setRecipes(initialRecipes);
 
-        // Check if recipe ID is passed in URL query param
         const urlParams = new URLSearchParams(window.location.search);
         const recipeId = urlParams.get('recipe');
         if (recipeId) {
@@ -124,7 +122,6 @@ function App() {
       setSelectedRecipe(recipe);
     }
 
-    // Update URL parameter without reload
     const url = new URL(window.location);
     url.searchParams.set('recipe', recipe.idMeal);
     window.history.pushState({}, '', url);
@@ -281,7 +278,7 @@ function App() {
       <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         {/* Sticky Responsive Header */}
         <header className="sticky top-2 sm:top-4 z-40 my-2 sm:my-4 flex flex-col md:flex-row justify-between items-center py-3 px-3.5 sm:px-6 rounded-2xl sm:rounded-3xl bg-slate-900/85 backdrop-blur-2xl border border-white/15 shadow-2xl gap-3">
-            {/* Top row on Mobile: Logo & Language button */}
+            {/* Top Row on Mobile: Logo on Left & Actions (Favorites + Lang) on Right */}
             <div className="flex items-center justify-between w-full md:w-auto">
               <div 
                 onClick={handleResetFilters}
@@ -297,8 +294,24 @@ function App() {
                   </span>
               </div>
 
-              {/* Language Switcher on mobile right */}
-              <div className="block md:hidden">
+              {/* Mobile Right Action Bar: Prominent Favorites + Language */}
+              <div className="flex items-center gap-2 md:hidden">
+                <button
+                  type="button"
+                  onClick={() => handleQuickFilter('Favorites')}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer border ${
+                    activeTab === 'Favorites'
+                      ? 'bg-rose-600 text-white border-rose-500 shadow-rose-600/40'
+                      : 'bg-slate-800/90 text-rose-300 border-rose-500/30 hover:bg-rose-600/20'
+                  }`}
+                  aria-label="View Favorites"
+                >
+                  <span className="text-sm">❤️</span>
+                  <span className="font-black bg-rose-500 text-white px-1.5 py-0.2 rounded-full text-[10px]">
+                    {favorites.length}
+                  </span>
+                </button>
+
                 <button 
                   onClick={toggleLanguage}
                   className="px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all border border-white/15 font-bold text-xs cursor-pointer shadow-md"
@@ -309,47 +322,55 @@ function App() {
               </div>
             </div>
             
-            {/* Navigation Tabs */}
-            <div className="flex items-center justify-between md:justify-end w-full md:w-auto gap-2 overflow-x-auto custom-scrollbar pb-1 md:pb-0">
+            {/* Center Category Navigation Tabs */}
+            <div className="flex items-center justify-between md:justify-center w-full md:w-auto gap-2 overflow-x-auto custom-scrollbar pb-1 md:pb-0">
                <nav className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm font-medium bg-slate-950/60 p-1 sm:p-1.5 rounded-2xl border border-white/10 shrink-0 mx-auto md:mx-0">
-                  {['Popular', 'Indian', 'Vegetarian', 'Spicy', 'Dessert', 'Favorites'].map((tab) => {
-                    const isFav = tab === 'Favorites';
+                  {['Popular', 'Indian', 'Vegetarian', 'Spicy', 'Dessert'].map((tab) => {
                     return (
                       <button
                         key={tab}
                         onClick={() => handleQuickFilter(tab)}
-                        className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 rounded-xl transition-all duration-300 cursor-pointer min-h-[34px] sm:min-h-[38px] ${
+                        className={`inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl transition-all duration-300 cursor-pointer min-h-[32px] sm:min-h-[36px] ${
                           activeTab === tab 
-                            ? isFav 
-                              ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/40 font-bold scale-[1.03]'
-                              : 'bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-md shadow-orange-500/30 font-bold scale-[1.02]' 
+                            ? 'bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-md shadow-orange-500/30 font-bold scale-[1.02]' 
                             : 'text-gray-400 hover:text-white hover:bg-white/5'
                         }`}
                       >
-                        <span className="whitespace-nowrap flex items-center gap-1">
-                          {isFav && <span>❤️</span>}
-                          <span>{t[`nav${tab}`]}</span>
-                        </span>
-                        {isFav && favorites.length > 0 && (
-                          <span className="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-white text-rose-600 shadow-sm leading-none">
-                            {favorites.length}
-                          </span>
-                        )}
+                        <span className="whitespace-nowrap">{t[`nav${tab}`]}</span>
                       </button>
                     );
                   })}
               </nav>
+            </div>
 
-              {/* Desktop Language button */}
-              <div className="hidden md:block">
-                <button 
-                  onClick={toggleLanguage}
-                  className="w-10 h-10 rounded-2xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all border border-white/15 font-extrabold text-xs cursor-pointer shadow-md hover:scale-105"
-                  title="Switch Language (EN / हिंदी)"
-                >
-                  {language === 'en' ? '🇮🇳 HI' : '🇬🇧 EN'}
-                </button>
-              </div>
+            {/* Desktop Action Bar on Right: Dedicated Favorites Button + Language */}
+            <div className="hidden md:flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => handleQuickFilter('Favorites')}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold transition-all duration-300 shadow-lg cursor-pointer border hover:scale-105 ${
+                  activeTab === 'Favorites'
+                    ? 'bg-rose-600 text-white border-rose-500 shadow-rose-600/40'
+                    : 'bg-rose-500/15 text-rose-300 border-rose-500/30 hover:bg-rose-500/25'
+                }`}
+                title="View Favorites"
+              >
+                <span>❤️</span>
+                <span>{t.navFavorites}</span>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-black shadow-sm ${
+                  activeTab === 'Favorites' ? 'bg-white text-rose-600' : 'bg-rose-500 text-white'
+                }`}>
+                  {favorites.length}
+                </span>
+              </button>
+
+              <button 
+                onClick={toggleLanguage}
+                className="w-10 h-10 rounded-2xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all border border-white/15 font-extrabold text-xs cursor-pointer shadow-md hover:scale-105"
+                title="Switch Language (EN / हिंदी)"
+              >
+                {language === 'en' ? '🇮🇳 HI' : '🇬🇧 EN'}
+              </button>
             </div>
         </header>
 
